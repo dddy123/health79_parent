@@ -1,0 +1,10 @@
+# Project exclude paths
+/health79_common/target/
+/health79_interface/target/
+/health79_jobs/target/
+/health79_mapper/target/
+/health79_mobileweb/target/
+/health79_pojo/target/
+/health79_service/target/
+/health79_web/target/
+/springsecuritydemo/target/

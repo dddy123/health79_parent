@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.mapper.SetmealMapper">
+
+    <!--新增套餐，并回显主键-->
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_setmeal values(null,#{name},#{code},#{helpCode},#{sex},#{age},#{price},#{remark},#{attention},#{img})
+    </insert>
+
+    <!--添加套餐和检查组中间表关系-->
+    <insert id="setSetmealAndCheckGroup">
+        insert into t_setmeal_checkgroup values
+        <foreach collection="checkGroupIds" item="checkGroupId" separator=",">
+            (#{id},#{checkGroupId})
+        </foreach>
+    </insert>
+
+    <!--条件查询套餐分页数据-->
+    <select id="findByCondition" resultType="Setmeal">
+        select * from t_setmeal
+        <if test="queryString !=null and queryString.trim()!=''">
+            where code = #{queryString} or name like '%' #{queryString} '%' or helpCode = #{queryString}
+        </if>
+    </select>
+
+    <!--查询所有套餐-->
+    <select id="findAll" resultType="Setmeal">
+        select * from t_setmeal
+    </select>
+
+    <!--
+        自定义结果集的作用：怎么封装数据我说了算
+        type属性：结果集类型，将查询出来的数据封装到哪个类型中
+    -->
+   <!-- <resultMap id="setmealAndCheckGroupAndCheckItemResultMap" type="Setmeal" autoMapping="true">
+        <id column="id" property="id"></id>
+
+        <collection property="checkGroups" javaType="List" ofType="CheckGroup" autoMapping="true">
+            <id column="cgid" property="id"></id>
+            <result column="cgname" property="name"></result>
+            <result column="cgremark" property="remark"></result>
+            <collection property="checkItems" javaType="List" ofType="CheckItem" autoMapping="true">
+                <id column="ciid" property="id"></id>
+                <result column="ciname" property="name"></result>
+            </collection>
+        </collection>
+    </resultMap>-->
+
+    <!--通过id 查询套餐和检查组以及检查项数据-->
+  <!--  <select id="findById" resultMap="setmealAndCheckGroupAndCheckItemResultMap">
+        SELECT
+            s.id,s.name,s.age,s.sex,s.remark,s.img,cg.id cgid,cg.name cgname,cg.remark cgremark,ci.id ciid,ci.name ciname
+        FROM
+            t_setmeal s
+        inner JOIN t_setmeal_checkgroup sc on sc.setmeal_id = s.id
+        inner join t_checkgroup cg on cg.id = sc.checkgroup_id
+        inner join t_checkgroup_checkitem cc on cc.checkgroup_id = cg.id
+        inner join t_checkitem ci on ci.id = cc.checkitem_id
+
+        WHERE
+            s.id = #{id}
+    </select>-->
+
+
+    <resultMap id="setmealAndCheckGroupResultMap" type="Setmeal">
+        <!--
+            select属性：在查询检查组的时候调用哪条语句
+            column属性：被调用的语句中的参数来自于哪里
+
+        -->
+        <collection property="checkGroups" javaType="List" ofType="CheckGroup" select="findCheckGroupBySetmealId" column="id"></collection>
+    </resultMap>
+
+    <select id="findById" resultMap="setmealAndCheckGroupResultMap">
+        select * from t_setmeal where id = #{id}
+    </select>
+
+    <resultMap id="CheckGroupAndCheckItemResultMap" type="CheckGroup">
+        <collection property="checkItems" javaType="List" ofType="CheckItem" select="findCheckItemByCheckGroupId" column="id"></collection>
+    </resultMap>
+
+    <select id="findCheckGroupBySetmealId" resultMap="CheckGroupAndCheckItemResultMap">
+        select * from t_checkgroup where id in(select checkgroup_id from t_setmeal_checkgroup where setmeal_id = #{setmealId})
+    </select>
+
+    <select id="findCheckItemByCheckGroupId" resultType="CheckItem">
+        select * from t_checkitem where id in(select checkitem_id from t_checkgroup_checkitem where checkgroup_id = #{checkGroupId})
+    </select>
+
+
+
+</mapper>

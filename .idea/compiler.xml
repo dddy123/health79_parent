@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="health79_common" />
+        <module name="health79_web" />
+        <module name="springsecuritydemo" />
+        <module name="health79_mapper" />
+        <module name="health79_pojo" />
+        <module name="health79_jobs" />
+        <module name="health79_service" />
+        <module name="health79_mobileweb" />
+        <module name="health79_interface" />
+      </profile>
+    </annotationProcessing>
+  </component>
+</project>

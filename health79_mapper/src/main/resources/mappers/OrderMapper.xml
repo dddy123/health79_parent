@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.mapper.OrderMapper">
+
+    <select id="findByCondition" resultType="Order">
+        select * from t_order where member_id = #{memberId} and orderDate = #{orderDate} and setmeal_id = #{setmealId}
+    </select>
+
+    <!--新增预约体检的订单-->
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_order values(null,#{memberId},#{orderDate},#{orderType},#{orderStatus},#{setmealId})
+    </insert>
+
+    <!--通过id查询订单信息-->
+    <select id="findById" resultType="Map">
+        SELECT
+            o.orderDate,o.orderType,m.name member,s.name setmeal
+        FROM
+            t_order o
+        INNER JOIN t_member m on m.id = o.member_id
+        inner join t_setmeal s on s.id = o.setmeal_id
+        WHERE
+            o.id = #{id}
+    </select>
+
+    <!--查询套餐占比-->
+    <select id="getSetmealReport" resultType="Map">
+        SELECT
+            count(s.id) value,s.name
+        FROM
+            t_order o
+        INNER JOIN t_setmeal s ON o.setmeal_id = s.id
+        group by
+            s.id
+    </select>
+
+
+    <!--今日预约数-->
+    <select id="findTodayOrderNumber" resultType="Integer">
+    select count(id) from t_order where orderDate = #{today}
+</select>
+
+    <!--本周或本月预约数-->
+    <select id="findOrderNumberAfterDate" resultType="Integer">
+    select count(id) from t_order where orderDate >= #{date}
+</select>
+
+    <!--今日到诊数-->
+    <select id="findTodayVisitsNumber" resultType="Integer">
+    select count(id) from t_order where orderDate = #{today} and orderStatus = "已到诊"
+</select>
+
+    <!--本周或本月到诊数-->
+    <select id="findVisitsNumberAfterDate" resultType="Integer">
+    select count(id) from t_order where orderDate >= #{date} and orderStatus = "已到诊"
+</select>
+
+    <!--热门套餐-->
+    <select id="findHotSetmeal" resultType="Map">
+    SELECT
+        s.name,
+        count(s.id) setmeal_count,
+        count(s.id) / (SELECT count(*) FROM t_order) AS proportion
+    FROM
+        t_order o
+    INNER JOIN t_setmeal s ON o.setmeal_id = s.id
+    GROUP BY
+        s.id
+    ORDER BY
+        setmeal_count DESC
+    LIMIT 0,4
+</select>
+
+
+
+</mapper>

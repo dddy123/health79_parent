@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/security
+        http://www.springframework.org/schema/security/spring-security.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+
+    <!--配置匿名访问资源
+        security属性：none表示不需要任何权限
+        pattern属性：表示配置哪些url不需要任何权限就能访问
+    -->
+    <security:http security="none" pattern="/favicon.ico"></security:http>
+    <security:http security="none" pattern="/js/**"></security:http>
+
+    <!--
+        http:定义springsecurity相关权限控制
+        auto-config属性：用来配置一些权限框架提供的自动化配置，比如springsecurity提供的登录和登录的操作。
+        use-expressions属性：是否使用表达式来设置相关权限控制
+    -->
+    <security:http auto-config="true" use-expressions="true">
+        <!--
+            intercept-url属性：配置对哪些url拦截的,/**：表示对所有的请求都进行拦截
+            access属性：用来设置权限的表达式,hasRole('ROLE_ADMIN'),只有拥有了ROLE_ADMIN的角色才可以进行url的访问
+        -->
+<!--        <security:intercept-url pattern="/**" access="hasRole('ROLE_ADMIN')"></security:intercept-url>-->
+        <!--a.html只要认证（登陆成功）通过就能访问-->
+        <security:intercept-url pattern="/a.html" access="isAuthenticated()"></security:intercept-url>
+        <!--b.html必须有add权限才能访问-->
+        <security:intercept-url pattern="/b.html" access="hasAuthority('add')"></security:intercept-url>
+        <!--c.html必须拥有ROLE_MANAGER的角色才能访问-->
+        <security:intercept-url pattern="/c.html" access="hasRole('ROLE_ADMIN')"></security:intercept-url>
+        <!--d.html必须拥有ROLE_ADMIN的角色才能访问,在此处配置角色是，ROLE可以省略，springsecurity框架会自动添加上去-->
+        <security:intercept-url pattern="/d.html" access="hasRole('ADMIN')"></security:intercept-url>
+
+        <!--
+            配置自定义的登陆页面
+            login-page属性：用来配置自定义的登陆页面
+            login-processing-url属性：配置表单提交之后发送的url,其实就是表单中的action属性
+            default-target-url属性：登陆成功之后默认跳转的url
+            always-use-default-target属性：当登陆之后不管之前访问的是什么url，总是跳转到default-target-url属性指定的url中
+            username-parameter属性：表单中提交的用户名的参数名称
+            password-parameter属性：表单中的提交的密码的参数名称
+            authentication-failure-url属性：登陆失败，跳转到哪个url
+        -->
+        <security:form-login login-page="/login.html"
+                             login-processing-url="/login.do"
+                             default-target-url="/index.html"
+                             always-use-default-target="true"
+                             username-parameter="username"
+                             password-parameter="password"
+                             authentication-failure-url="/login.html"></security:form-login>
+
+        <!--配置登出控制
+            logout-url属性：退出登陆的url
+            logout-success-url属性：退出登陆后跳转的url
+            invalidate-session属性：清空session(springsecurity框架中的session)
+
+        -->
+        <security:logout logout-url="/logout.do" logout-success-url="/login.html" invalidate-session="true"></security:logout>
+
+        <!--关闭过滤器-->
+        <security:csrf disabled="true"></security:csrf>
+
+    </security:http>
+
+    <!--
+        认证管理器:用来执行具体的认证操作的
+    -->
+
+   <!-- <security:authentication-manager>
+        &lt;!&ndash;
+            认证提供者：来执行具体的权限相关的认证逻辑的
+        &ndash;&gt;
+        <security:authentication-provider>
+            &lt;!&ndash;
+                用户服务者：提供用户相关信息给认证提供者的
+            &ndash;&gt;
+            <security:user-service>
+                &lt;!&ndash;配置具体的用户信息的
+                    name属性：用户的登陆的用户名
+                    password属性：用来设置用户的登陆密码{noop}表示什么这是一个明文密码
+                    authorities属性：用来设置权限：角色、权限等等
+
+                &ndash;&gt;
+                <security:user name="admin" password="{noop}1234" authorities="ROLE_ADMIN"></security:user>
+            </security:user-service>
+        </security:authentication-provider>
+    </security:authentication-manager>-->
+
+    <security:authentication-manager>
+        <security:authentication-provider user-service-ref="securityUserService">
+            <security:password-encoder ref="passwordEncoder"></security:password-encoder>
+        </security:authentication-provider>
+    </security:authentication-manager>
+
+
+    <!--配置注解扫描-->
+    <context:component-scan base-package="com.itheima"></context:component-scan>
+
+    <bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"></bean>
+
+    <!--声明使用注解配置权限-->
+    <security:global-method-security pre-post-annotations="enabled"></security:global-method-security>
+
+</beans>
